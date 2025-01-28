@@ -1,0 +1,4 @@
+.vim/plugged/*
+.vim/undo/*
+.vim/.netrwhist
+

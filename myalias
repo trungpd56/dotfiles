@@ -1,0 +1,35 @@
+export EDITOR=/usr/bin/vim
+if [ -d "$HOME/.local/bin" ] ; then
+    PATH="$HOME/.local/bin:$PATH"
+fi
+
+# alias
+alias ap="ansible-playbook"
+alias python="python3"
+alias grep='grep --color=auto'
+alias tnn="cd ~/src/github.com/tomnomnom"
+alias follow="tail -f -n +1"
+alias upcur="updog -p 9999"
+alias pvc="python -m venv venv"
+alias pva="source venv/bin/activate"
+alias ll="ls -l --color"
+alias la="ls -la --color"
+
+# git alias
+alias gpullf="git git fetch origin && git reset --hard origin/main"
+alias gpushf="git add .&& git commit --amend --no-edit && git push --force"
+alias gam='git commit --amend --no-edit'
+alias gc="git commit"
+alias gs="git status"
+alias glog='git log --oneline'
+alias gd='git diff'
+alias gpull='git pull'
+alias gpush='git push'
+alias gadd='git add .'
+alias gfind='git ls-files | grep -i'
+alias gundo='git reset --hard'
+
+# docker compose alias
+alias dc='docker compose'
+alias dlog='docker logs'
+alias dex='docker exec -it'
