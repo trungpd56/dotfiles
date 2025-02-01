@@ -13,7 +13,7 @@
   "pyright.inlayHints.functionReturnTypes": false,
   "pyright.inlayHints.variableTypes": false,
   "pyright.inlayHints.parameterTypes": false,
-  "[python]": {
-    "coc.preferences.formatOnSave": true
-  },
+  // "[python]": {
+  //   "coc.preferences.formatOnSave": true
+  // },
 }

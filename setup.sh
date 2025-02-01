@@ -26,15 +26,17 @@ function linkDotfile {
 }
 
 linkDotfile .vim
+linkDotfile .inputrc
+linkDotfile .curlrc
 linkDotfile .tmux.conf
 linkDotfile .gitconfig
 
 sudo apt -y install tmux tree rename curl git
 grep 'myalias' ~/.bashrc || echo 'source ~/dotfiles/myalias' >> ~/.bashrc
-# curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash
-# grep 'zoxide' ~/.bashrc || echo 'eval "$(zoxide init bash --cmd cd)"' >> ~/.bashrc
 source ~/.bashrc
 curl -sL install-node.vercel.app/lts | sudo bash
 
+# curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash
+# grep 'zoxide' ~/.bashrc || echo 'eval "$(zoxide init bash --cmd cd)"' >> ~/.bashrc
 # cd /tmp && wget https://github.com/dandavison/delta/releases/download/0.17.0/git-delta_0.17.0_amd64.deb && dpkg -i git-delta_0.17.0_amd64.deb
 # sudo add-apt-repository ppa:jonathonf/vim

@@ -7,6 +7,7 @@ set clipboard=unnamedplus,unnamed
 set cursorline
 set encoding=utf-8
 set hidden
+set hlsearch
 set ignorecase
 set incsearch
 set mouse=a
@@ -16,7 +17,7 @@ set nowrap
 set nowritebackup
 set path+=**
 set rnu nu
-set signcolumn=yes
+" set signcolumn=yes
 set smartcase
 set smartindent
 set so=20
@@ -27,8 +28,14 @@ set undofile
 set updatetime=300
 set wildignore+=*.pyc
 set wildmenu
+set confirm
 
+" ':verbose imap <tab>' check key
 inoremap jk <Esc>
+nnoremap c* viW"zy/\V<C-r>=escape(@z, '/\')<CR><CR>``cgn
+nnoremap c# viW"zy?\V<C-r>=escape(@z, '/\')<CR><CR>``cgn
+nnoremap j gj
+nnoremap k gk
 nnoremap n nzz
 nnoremap N Nzz
 nnoremap ]w <C-w>w
@@ -37,30 +44,54 @@ nnoremap Y y$
 nnoremap U <C-r>
 nnoremap ; :
 vnoremap ; :
+nnoremap : ;
 nnoremap ' `
 nnoremap ` '
+nnoremap Q @q
+vnoremap Q :norm @q<cr>
+nnoremap <leader>q :Bdelete<cr>
 nnoremap <leader><leader> <c-^>
 nnoremap <leader>gf :GFiles<Cr>
 nnoremap <leader>ff :Files<Cr>
+nnoremap <leader>fl :Files %:h<Cr>
+nnoremap <leader>fd :Buffers<Cr>
 nnoremap <leader>fg :Rg<Cr>
 nnoremap <leader>fn :edit ~/.vim/vimrc<cr>
+nnoremap <Cr> o<ESC>
+nnoremap H ^
+nnoremap L $
+nnoremap c "_c
+nnoremap C "_C
+nnoremap x "_x
+nnoremap <leader>d "_d
+vnoremap <leader>d "_d
 nnoremap / ms/
 nnoremap ? ms?
+nnoremap p p=`]
+nnoremap P :put! "0=`]<cr>
 " Set 0 as ^
 nnoremap <expr> <silent> 0 col('.') == match(getline('.'),'\S')+1 ? '0' : '^'
 nnoremap <Up> <C-u>zz<CR>
 nnoremap <Down> <C-d>zz<CR>
+nnoremap <S-Up> <Up>
+nnoremap <S-Down> <Down>
 nnoremap <Left> gT
 nnoremap <Right> gt
-nnoremap <leader>b :ls<CR>:b<Space>
+xnoremap < <gv
+xnoremap > >gv
+" gJ and J to join
+" nnoremap <silent> J :<C-U>exec "exec 'norm m`' \| move +" . (0+v:count1)<CR>==``
+" nnoremap <silent> K :<C-U>exec "exec 'norm m`' \| move -" . (1+v:count1)<CR>==``
+xnoremap <silent> J :<C-U>exec "'<,'>move '>+" . (0+v:count1)<CR>gv=gv
+xnoremap <silent> K :<C-U>exec "'<,'>move '<-" . (1+v:count1)<CR>gv=gv
 
 
 call plug#begin('~/.vim/plugged')
 
 Plug 'catppuccin/vim'
 Plug 'christoomey/vim-sort-motion'
-Plug 'christoomey/vim-system-copy'
 Plug 'christoomey/vim-titlecase'
+Plug 'haya14busa/vim-asterisk'
 Plug 'inkarkat/vim-ReplaceWithRegister'
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
@@ -70,18 +101,18 @@ Plug 'machakann/vim-highlightedyank'
 Plug 'markonm/traces.vim'
 Plug 'mg979/vim-visual-multi'
 Plug 'michaeljsmith/vim-indent-object'
-Plug 'mkitt/tabline.vim'
-Plug 'nelstrom/vim-visual-star-search'
+Plug 'moll/vim-bbye'
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
 Plug 'ntpeters/vim-better-whitespace'
 Plug 'preservim/nerdtree'
-Plug 'rhysd/clever-f.vim'
 Plug 'romainl/vim-cool'
 Plug 'romainl/vim-qf'
 Plug 'sheerun/vim-polyglot'
 Plug 'svban/YankAssassin.vim'
 Plug 'tpope/vim-commentary'
 Plug 'tpope/vim-eunuch'
+Plug 'tpope/vim-fugitive'
+Plug 'tpope/vim-obsession'
 Plug 'tpope/vim-repeat'
 Plug 'tpope/vim-rsi'
 Plug 'tpope/vim-surround'
@@ -92,7 +123,20 @@ Plug 'wellle/targets.vim'
 
 call plug#end()
 
-" fzf plugin
+" clipboard
+augroup Osc52Yank
+    autocmd!
+    autocmd TextYankPost * if len(v:event.regcontents[0]) > 1 || len(v:event.regcontents) > 1 | call system("printf $'\\e]52;c;%s\\a' \"$(cat | base64)\" >> /dev/tty", v:event.regcontents) | endif
+augroup END
+
+" vim-asterisk
+let g:asterisk#keeppos = 1
+map *  <Plug>(asterisk-z*)
+map #  <Plug>(asterisk-z#)
+map g* <Plug>(asterisk-gz*)
+map g# <Plug>(asterisk-gz#)
+
+" fzf
 let g:fzf_vim = {}
 let g:fzf_vim.preview_window = ['right,60%', 'ctrl-/']
 
@@ -101,20 +145,20 @@ nmap <Leader>r  <Plug>ReplaceWithRegisterOperator
 nmap <Leader>rr <Plug>ReplaceWithRegisterLine
 xmap <Leader>r  <Plug>ReplaceWithRegisterVisual
 
-" nerdtree, theme, highligh, smartf
-nnoremap <leader>et :NERDTreeToggle<CR>
+" nerdtree
 " let g:NERDTreeMapPreview = 'p'
+nnoremap <leader>et :NERDTreeToggle<CR>
 
+" theme, highlight, smartf
 set termguicolors
 color catppuccin_mocha
 let g:cool_total_matches = 1
 let g:highlightedyank_highlight_duration = 300
-let g:clever_f_smart_case = 1
+" let g:clever_f_smart_case = 1
 
 " airline
 let g:airline#extensions#tabline#enabled = 1
 let g:airline#extensions#tabline#formatter = 'unique_tail'
-
 if !exists('g:airline_symbols')
   let g:airline_symbols = {}
 endif
@@ -128,20 +172,19 @@ let g:VM_maps["Undo"] = 'u'
 let g:VM_maps["Redo"] = 'U'
 " let g:VM_mouse_mappings = 1
 
-" autowrite options
+" autosave
 autocmd FocusLost * wa
-" autocmd CursorHold * writeall
-" set autowrite
+" autocmd CursorHold * wa
 
-" Coc Settings
+" coc settings
 " let g:coc_global_extensions = ['coc-json', '@yaegassy/coc-ansible', 'coc-sh', 'coc-pyright']
+" let g:coc_filetype_map = {'yaml.ansible': 'ansible'}
+" let g:coc_start_at_startup = 1
 " let g:coc_suggest_disable = 1
 let g:coc_disable_startup_warning = 1
-let g:coc_start_at_startup = 1
 call coc#config('suggest.triggerAfterInsertEnter', v:false)
 call coc#config('suggest.minTriggerInputLength', 4)
-let g:coc_filetype_map = {'yaml.ansible': 'ansible'}
-" Use command ':verbose imap <tab>' to make sure Tab is not mapped by
+
 inoremap <silent><expr> <TAB>
       \ coc#pum#visible() ? coc#pum#next(1) :
       \ CheckBackspace() ? "\<Tab>" :
@@ -176,12 +219,6 @@ endfunction
 
 autocmd CursorHold * silent call CocActionAsync('highlight')
 
-augroup mygroup
-  autocmd!
-  autocmd FileType typescript,json setl formatexpr=CocAction('formatSelected')
-  autocmd User CocJumpPlaceholder call CocActionAsync('showSignatureHelp')
-augroup end
-
 " Map function and class text objects
 xmap if <Plug>(coc-funcobj-i)
 omap if <Plug>(coc-funcobj-i)
@@ -191,15 +228,6 @@ xmap ic <Plug>(coc-classobj-i)
 omap ic <Plug>(coc-classobj-i)
 xmap ac <Plug>(coc-classobj-a)
 omap ac <Plug>(coc-classobj-a)
-
-if has('nvim-0.4.0') || has('patch-8.2.0750')
-  nnoremap <silent><nowait><expr> <C-f> coc#float#has_scroll() ? coc#float#scroll(1) : "\<C-f>"
-  nnoremap <silent><nowait><expr> <C-b> coc#float#has_scroll() ? coc#float#scroll(0) : "\<C-b>"
-  inoremap <silent><nowait><expr> <C-f> coc#float#has_scroll() ? "\<c-r>=coc#float#scroll(1)\<cr>" : "\<Right>"
-  inoremap <silent><nowait><expr> <C-b> coc#float#has_scroll() ? "\<c-r>=coc#float#scroll(0)\<cr>" : "\<Left>"
-  vnoremap <silent><nowait><expr> <C-f> coc#float#has_scroll() ? coc#float#scroll(1) : "\<C-f>"
-  vnoremap <silent><nowait><expr> <C-b> coc#float#has_scroll() ? coc#float#scroll(0) : "\<C-b>"
-endif
 
 " Formatting selected code
 xmap <leader>f  <Plug>(coc-format-selected)

@@ -7,7 +7,6 @@ fi
 alias ap="ansible-playbook"
 alias python="python3"
 alias grep='grep --color=auto'
-alias tnn="cd ~/src/github.com/tomnomnom"
 alias follow="tail -f -n +1"
 alias upcur="updog -p 9999"
 alias pvc="python -m venv venv"
@@ -31,5 +30,9 @@ alias gundo='git reset --hard'
 
 # docker compose alias
 alias dc='docker compose'
-alias dlog='docker logs'
+alias dclean='docker system prune -a -f'
+alias ddf='docker system df'
 alias dex='docker exec -it'
+alias dlog='docker logs -n 20'
+alias dnew="docker compose up -d && docker compose logs -n 20"
+alias drecreate="docker compose up -d --force-recreate"
