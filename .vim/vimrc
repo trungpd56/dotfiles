@@ -17,7 +17,7 @@ set nowrap
 set nowritebackup
 set path+=**
 set rnu nu
-" set signcolumn=yes
+set signcolumn=yes
 set smartcase
 set smartindent
 set so=20
@@ -49,14 +49,28 @@ nnoremap ' `
 nnoremap ` '
 nnoremap Q @q
 vnoremap Q :norm @q<cr>
-nnoremap <leader>q :Bdelete<cr>
+
+function! QuitOrBdelete()
+    let l:buffer_count = len(filter(range(1, bufnr('$')), 'buflisted(v:val)'))
+    if l:buffer_count > 1
+        Bdelete
+    else
+        quit
+    endif
+endfunction
+nnoremap <leader>q :call QuitOrBdelete()<CR>
 nnoremap <leader><leader> <c-^>
-nnoremap <leader>gf :GFiles<Cr>
-nnoremap <leader>ff :Files<Cr>
-nnoremap <leader>fl :Files %:h<Cr>
+
+nnoremap <leader>/ :BLines<cr>
+nnoremap <leader>fc :History:<Cr>
 nnoremap <leader>fd :Buffers<Cr>
+nnoremap <leader>ff :Files<Cr>
 nnoremap <leader>fg :Rg<Cr>
+nnoremap <leader>fl :Files %:h<Cr>
+nnoremap <leader>fm :History<Cr>
 nnoremap <leader>fn :edit ~/.vim/vimrc<cr>
+nnoremap <leader>gf :GFiles<Cr>
+
 nnoremap <Cr> o<ESC>
 nnoremap H ^
 nnoremap L $
@@ -69,14 +83,15 @@ nnoremap / ms/
 nnoremap ? ms?
 nnoremap p p=`]
 nnoremap P :put! "0=`]<cr>
+nnoremap <leader>b :ls<CR>:b<Space>
 " Set 0 as ^
 nnoremap <expr> <silent> 0 col('.') == match(getline('.'),'\S')+1 ? '0' : '^'
 nnoremap <Up> <C-u>zz<CR>
 nnoremap <Down> <C-d>zz<CR>
 nnoremap <S-Up> <Up>
 nnoremap <S-Down> <Down>
-nnoremap <Left> gT
-nnoremap <Right> gt
+nnoremap <Left> :bp<cr>
+nnoremap <Right> :bn<cr>
 xnoremap < <gv
 xnoremap > >gv
 " gJ and J to join
@@ -91,24 +106,32 @@ call plug#begin('~/.vim/plugged')
 Plug 'catppuccin/vim'
 Plug 'christoomey/vim-sort-motion'
 Plug 'christoomey/vim-titlecase'
+Plug 'diepm/vim-rest-console'
 Plug 'haya14busa/vim-asterisk'
 Plug 'inkarkat/vim-ReplaceWithRegister'
+Plug 'jpalardy/vim-slime'
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
 Plug 'kana/vim-textobj-entire'
+Plug 'kana/vim-textobj-line'
 Plug 'kana/vim-textobj-user'
 Plug 'machakann/vim-highlightedyank'
 Plug 'markonm/traces.vim'
-Plug 'mg979/vim-visual-multi'
+Plug 'mbbill/undotree'
 Plug 'michaeljsmith/vim-indent-object'
 Plug 'moll/vim-bbye'
+Plug 'nathanaelkane/vim-indent-guides'
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
 Plug 'ntpeters/vim-better-whitespace'
 Plug 'preservim/nerdtree'
+Plug 'rhysd/clever-f.vim'
 Plug 'romainl/vim-cool'
 Plug 'romainl/vim-qf'
+Plug 'rstacruz/vim-closer'
+Plug 'saaguero/vim-textobj-pastedtext'
 Plug 'sheerun/vim-polyglot'
 Plug 'svban/YankAssassin.vim'
+Plug 'tpope/vim-abolish'
 Plug 'tpope/vim-commentary'
 Plug 'tpope/vim-eunuch'
 Plug 'tpope/vim-fugitive'
@@ -123,11 +146,28 @@ Plug 'wellle/targets.vim'
 
 call plug#end()
 
-" clipboard
+" Qflist settings
+let g:qf_mapping_ack_style = 1
+
+" Undo mapping
+nnoremap <leader>u :UndotreeToggle<cr>
+if !exists('g:undotree_DiffAutoOpen')
+    let g:undotree_DiffAutoOpen = 0
+endif
+
+" Clipboard
 augroup Osc52Yank
     autocmd!
     autocmd TextYankPost * if len(v:event.regcontents[0]) > 1 || len(v:event.regcontents) > 1 | call system("printf $'\\e]52;c;%s\\a' \"$(cat | base64)\" >> /dev/tty", v:event.regcontents) | endif
 augroup END
+
+" Vim-slime
+let g:slime_target = "tmux"
+let g:slime_default_config = {"socket_name": "default", "target_pane": "1"}
+let g:slime_dont_ask_default = 1
+
+" Vim-rest
+let g:vrc_split_request_body = 1
 
 " vim-asterisk
 let g:asterisk#keeppos = 1
@@ -136,27 +176,42 @@ map #  <Plug>(asterisk-z#)
 map g* <Plug>(asterisk-gz*)
 map g# <Plug>(asterisk-gz#)
 
-" fzf
+" Fzf
 let g:fzf_vim = {}
-let g:fzf_vim.preview_window = ['right,60%', 'ctrl-/']
+" CTRL-A CTRL-Q to select all and build quickfix list
+function! s:build_quickfix_list(lines)
+  call setqflist(map(copy(a:lines), '{ "filename": v:val }'))
+  copen
+  cc
+endfunction
 
-" replace with register
+let g:fzf_action = {
+  \ 'ctrl-q': function('s:build_quickfix_list'),
+  \ 'ctrl-t': 'tab split',
+  \ 'ctrl-x': 'split',
+  \ 'ctrl-v': 'vsplit' }
+
+let $FZF_DEFAULT_OPTS = '--bind ctrl-a:select-all,ctrl-j:down,ctrl-k:up,right:preview-page-down,left:preview-page-up'
+let g:fzf_vim.preview_window = ['right,60%', 'ctrl-/']
+let g:fzf_layout = { 'window': { 'width': 0.9, 'height': 0.8 } }
+
+" Replace with register
 nmap <Leader>r  <Plug>ReplaceWithRegisterOperator
 nmap <Leader>rr <Plug>ReplaceWithRegisterLine
 xmap <Leader>r  <Plug>ReplaceWithRegisterVisual
 
-" nerdtree
+" Nerdtree
 " let g:NERDTreeMapPreview = 'p'
 nnoremap <leader>et :NERDTreeToggle<CR>
 
-" theme, highlight, smartf
+" Theme, highlight, smartf
 set termguicolors
 color catppuccin_mocha
 let g:cool_total_matches = 1
 let g:highlightedyank_highlight_duration = 300
-" let g:clever_f_smart_case = 1
+let g:clever_f_smart_case = 1
 
-" airline
+" Airline
 let g:airline#extensions#tabline#enabled = 1
 let g:airline#extensions#tabline#formatter = 'unique_tail'
 if !exists('g:airline_symbols')
@@ -166,32 +221,21 @@ let g:airline_symbols.linenr = ''
 let g:airline_symbols.colnr = ':'
 au User AirlineAfterInit  :let g:airline_section_z = airline#section#create(['%3p%%  ','linenr','colnr'])
 
-" visual multi
-let g:VM_maps = {}
-let g:VM_maps["Undo"] = 'u'
-let g:VM_maps["Redo"] = 'U'
-" let g:VM_mouse_mappings = 1
-
-" autosave
+" Autosave
 autocmd FocusLost * wa
 " autocmd CursorHold * wa
 
-" coc settings
+" Coc settings
 " let g:coc_global_extensions = ['coc-json', '@yaegassy/coc-ansible', 'coc-sh', 'coc-pyright']
-" let g:coc_filetype_map = {'yaml.ansible': 'ansible'}
 " let g:coc_start_at_startup = 1
 " let g:coc_suggest_disable = 1
+let g:coc_filetype_map = {'yaml.ansible': 'ansible'}
 let g:coc_disable_startup_warning = 1
 call coc#config('suggest.triggerAfterInsertEnter', v:false)
 call coc#config('suggest.minTriggerInputLength', 4)
 
-inoremap <silent><expr> <TAB>
-      \ coc#pum#visible() ? coc#pum#next(1) :
-      \ CheckBackspace() ? "\<Tab>" :
-      \ coc#refresh()
-inoremap <expr><S-TAB> coc#pum#visible() ? coc#pum#prev(1) : "\<C-h>"
-
-inoremap <silent><expr> <CR> coc#pum#visible() ? coc#pum#confirm()
+inoremap <silent><expr> <C-Space> coc#refresh()
+inoremap <silent><expr> <cr> coc#pum#visible() ? coc#pum#confirm()
                               \: "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
 
 function! CheckBackspace() abort
@@ -217,7 +261,7 @@ function! ShowDocumentation()
   endif
 endfunction
 
-autocmd CursorHold * silent call CocActionAsync('highlight')
+" autocmd CursorHold * silent call CocActionAsync('highlight')
 
 " Map function and class text objects
 xmap if <Plug>(coc-funcobj-i)

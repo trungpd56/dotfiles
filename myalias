@@ -15,7 +15,7 @@ alias ll="ls -l --color"
 alias la="ls -la --color"
 
 # git alias
-alias gpullf="git git fetch origin && git reset --hard origin/main"
+alias gpullf="git fetch origin && git reset --hard origin/main"
 alias gpushf="git add .&& git commit --amend --no-edit && git push --force"
 alias gam='git commit --amend --no-edit'
 alias gc="git commit"
