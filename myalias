@@ -1,6 +1,12 @@
 export EDITOR=/usr/bin/vim
+alias wakepc="sudo etherwake -i eno1 58:11:22:2a:ce:8f"
+
 if [ -d "$HOME/.local/bin" ] ; then
     PATH="$HOME/.local/bin:$PATH"
+fi
+
+if [[ -z "$TMUX" ]] && [[ -n "$SSH_CONNECTION" ]]; then
+    tmux attach || tmux new-session
 fi
 
 # alias
@@ -8,7 +14,7 @@ alias ap="ansible-playbook"
 alias python="python3"
 alias grep='grep --color=auto'
 alias follow="tail -f -n +1"
-alias upcur="updog -p 9999"
+alias upcur="updog -p 6000"
 alias pvc="python -m venv venv"
 alias pva="source venv/bin/activate"
 alias ll="ls -l --color"
@@ -36,3 +42,4 @@ alias dex='docker exec -it'
 alias dlog='docker logs -n 20'
 alias dnew="docker compose up -d && docker compose logs -n 20"
 alias drecreate="docker compose up -d --force-recreate"
+alias dps="docker ps --format 'table {{.ID}}\t{{.Image}}\t{{.Status}}\t{{.Names}}'"

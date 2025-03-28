@@ -31,7 +31,7 @@ linkDotfile .curlrc
 linkDotfile .tmux.conf
 linkDotfile .gitconfig
 
-sudo apt -y install tmux tree rename curl git
+sudo apt -y install tmux tree rename curl git ripgrep
 grep 'myalias' ~/.bashrc || echo 'source ~/dotfiles/myalias' >> ~/.bashrc
 source ~/.bashrc
 curl -sL install-node.vercel.app/lts | sudo bash
