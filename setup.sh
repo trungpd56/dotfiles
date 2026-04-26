@@ -31,10 +31,12 @@ linkDotfile .curlrc
 linkDotfile .tmux.conf
 linkDotfile .gitconfig
 
-sudo apt -y install tmux tree rename curl git ripgrep
-grep 'myalias' ~/.bashrc || echo 'source ~/dotfiles/myalias' >> ~/.bashrc
-source ~/.bashrc
-curl -sL install-node.vercel.app/lts | sudo bash
+if [ -f ~/.bashrc ] ; then
+  sudo apt -y install tmux tree rename curl git ripgrep
+  curl -sL install-node.vercel.app/lts | sudo bash
+  grep -q 'source ~/dotfiles/myalias' ~/.bashrc || echo 'source ~/dotfiles/myalias' >> ~/.bashrc
+  source ~/.bashrc
+fi
 
 # curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash
 # grep 'zoxide' ~/.bashrc || echo 'eval "$(zoxide init bash --cmd cd)"' >> ~/.bashrc

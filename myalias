@@ -5,7 +5,7 @@ if [ -d "$HOME/.local/bin" ] ; then
     PATH="$HOME/.local/bin:$PATH"
 fi
 
-if [[ -z "$TMUX" ]] && [[ -n "$SSH_CONNECTION" ]]; then
+if [[ -z "$TMUX" ]] && [[ -n "$SSH_CONNECTION" ]] && [[ -t 1 ]]; then
     tmux attach || tmux new-session
 fi
 
